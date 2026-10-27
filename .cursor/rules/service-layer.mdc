@@ -1,0 +1,30 @@
+---
+description: Service-layer domain objects, transactions, and mapping
+globs: src/main/java/template/service/**/*.java,src/main/java/template/exception/**/*.java
+alwaysApply: false
+---
+
+# Service layer
+
+`template.service` holds domain types (`Item`) and `@Service` classes. Domain types have no JPA or Jackson annotations.
+
+Services accept and return domain objects. They call the repository and map with `ModelMapper`:
+
+- read: `ItemEntity` → `Item` via `toDomainObject`
+- write: `Item` → `ItemEntity` via `toEntity`
+
+Reads return `Optional` or `List`. Writes that change data use `@Transactional` from `jakarta.transaction`.
+
+Reject invalid domain state with a `final` exception in `template.exception`. Keep the message in `public static final String MESSAGE` and format it in the constructor.
+
+```java
+@Transactional
+public void create(Item item) {
+    if (item.getId() != null) {
+        throw new ItemIdAlreadySetException(item.getId());
+    }
+    repository.create(toEntity(item));
+}
+```
+
+Do not catch repository failures to return null. Let them propagate.

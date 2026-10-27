@@ -1,0 +1,32 @@
+---
+description: Unit and integration test conventions
+globs: src/test/**/*.java
+alwaysApply: false
+---
+
+# Tests
+
+Two suites, split by Maven plugin:
+
+- `*Test.java` — unit tests (Surefire). No Spring context. Construct the class under test and mock the layer directly beneath it with Mockito.
+- `*IT.java` — integration tests (Failsafe). Extend `AbstractIT` (`@SpringBootTest` on a random port, profile `test`, REST Assured).
+
+Name tests `should…`. Structure them with `//given`, `//when`, and `//then` comments. Assert the result and `verify` the collaborator. Reuse fixtures from `template.util.TestItems` instead of duplicating item builders.
+
+```java
+@Test
+void shouldGetItem() {
+    //given item
+    var item = Item.builder().id(1L).name("Item A").build();
+    //and service
+    var service = mock(ItemService.class);
+    when(service.get(1L)).thenReturn(Optional.of(item));
+    //when item is requested
+    var response = new ItemController(service, new ModelMapper()).getItem(1L);
+    //then OK status is returned
+    assertEquals(OK, response.getStatusCode());
+    verify(service).get(1L);
+}
+```
+
+Integration tests that insert data delete it before the method returns. Run `./mvnw clean verify` before considering a change done.

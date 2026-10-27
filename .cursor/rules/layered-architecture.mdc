@@ -1,0 +1,31 @@
+---
+description: Layer boundaries, packages, and dependency direction
+alwaysApply: true
+---
+
+# Layered architecture
+
+Java 21 Spring Boot service. Base package is `template`. Build and test with `./mvnw`. A feature is a vertical slice through every layer, matching the existing Item flow.
+
+Dependency direction is one way: `api` → `service` → `repository`.
+
+| Package | Owns | Must not use |
+|---|---|---|
+| `template.api` | HTTP, generated `*DTO`, OpenAPI interfaces | repositories, `*Entity`, `EntityManager` |
+| `template.service` | domain objects and business rules | `ResponseEntity`, `*DTO`, HTTP status |
+| `template.repository` | `*Entity`, JPA, SQL | domain objects, DTOs, HTTP |
+| `template.exception` | runtime exceptions thrown by services | Spring Web types |
+| `template.config` | shared beans such as `ModelMapper` | business logic |
+
+Do not skip a layer. Do not edit generated sources under `target/` or `template.api.model`.
+
+Spring beans use `@AllArgsConstructor` and `final` fields. Domain and entity classes use `@Data`, `@Builder`, `@NoArgsConstructor`, and `@AllArgsConstructor`. Map between layers with the shared `ModelMapper` bean, and mark mapping helpers `@VisibleForTesting`.
+
+```java
+// ❌ BAD — controller calls the repository
+return repository.findById(id);
+
+// ✅ GOOD — controller delegates, then maps
+return service.get(id).map(this::toDTO).map(ResponseEntity::ok)
+        .orElse(ResponseEntity.notFound().build());
+```

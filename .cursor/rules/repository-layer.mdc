@@ -1,0 +1,24 @@
+---
+description: Persistence entities, repositories, and H2 SQL
+globs: src/main/java/template/repository/**/*.java,src/main/resources/**/*.sql,src/test/resources/**/*.sql
+alwaysApply: false
+---
+
+# Repository layer
+
+Persistence stays in `template.repository`.
+
+- `*Entity`: `@Entity`, `@Table`, sequence id (`GenerationType.SEQUENCE`, `allocationSize = 1`). Lombok data class. No domain logic.
+- `*JpaRepository`: `JpaRepository` interface for derived CRUD.
+- `*Repository`: `@Repository` facade. Simple CRUD delegates to the JPA interface. Native SQL goes through `EntityManager`.
+- `Queries`: `@UtilityClass` of SQL string constants. Do not inline SQL in repository methods.
+
+Mutating repository methods use Spring `@Transactional`. H2 lock and sequence SQL is for dev and tests. Keep it in `Queries`, and note it when the statement is not portable.
+
+Seed data belongs in `data.sql`, `data-dev.sql` (profile `dev`), or `src/test/resources/data-test.sql` (profile `test`). Do not insert rows from Java.
+
+```java
+public Optional<ItemEntity> findById(Long id) {
+    return jpaRepository.findById(id);
+}
+```

@@ -1,0 +1,23 @@
+---
+description: OpenAPI-first controllers and DTO mapping
+globs: src/main/java/template/api/**/*.java,src/main/resources/api.yaml
+alwaysApply: false
+---
+
+# API layer
+
+The contract is `src/main/resources/api.yaml`. The OpenAPI generator (`interfaceOnly`, `useSpringBoot3`) emits interfaces in `template.api` and DTOs in `template.api.model`. Change the spec, then implement the generated method. Do not hand-write DTOs or API interfaces.
+
+Controllers are `@RestController` classes that implement the generated interface. They validate HTTP concerns and return `ResponseEntity`. A missing resource is `404`. A conflicting id is `400`.
+
+Business rules that must hold outside HTTP belong in the service. `POST` rejects a client-supplied id in the controller, and `ItemService.create` still throws `ItemIdAlreadySetException` if an id is set.
+
+```java
+@Override
+public ResponseEntity<ItemDTO> getItem(Long id) {
+    return service.get(id).map(this::toDTO).map(ResponseEntity::ok)
+            .orElse(ResponseEntity.notFound().build());
+}
+```
+
+Map only at this boundary: `ItemDTO` ↔ domain `Item`.
