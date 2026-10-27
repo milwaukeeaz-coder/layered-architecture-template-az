@@ -87,6 +87,19 @@ paths:
           description: Successful response
         '404':
           description: Not found
+  /api/v1/benchmark-report:
+    get:
+      operationId: getBenchmarkReport
+      description: Generates the high-risk compliance report and returns its execution time and estimated JVM memory use
+      tags:
+        - benchmark-report
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BenchmarkReportDTO'
 components:
   schemas:
     ItemDTO:
@@ -98,6 +111,20 @@ components:
           type: long
         name:
           type: string
+    BenchmarkReportDTO:
+      type: object
+      required:
+        - executionTimeMillis
+        - estimatedMemoryConsumedBytes
+      properties:
+        executionTimeMillis:
+          type: integer
+          format: int64
+          description: Wall-clock time spent generating the report, in milliseconds
+        estimatedMemoryConsumedBytes:
+          type: integer
+          format: int64
+          description: Estimated JVM heap memory consumed while generating the report, in bytes
   parameters:
     itemId:
       name: itemId
