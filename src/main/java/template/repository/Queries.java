@@ -13,4 +13,13 @@ public class Queries {
 
     public static final String CURRENT_SEQ_VAL_QUERY = "SELECT CAST(BASE_VALUE AS BIGINT) FROM INFORMATION_SCHEMA.SEQUENCES WHERE SEQUENCE_NAME = 'ITEM_SEQ'";
 
+    public static final String HIGH_RISK_USERNAMES_QUERY = """
+            SELECT a.username
+            FROM AuditLogEntity a
+            WHERE a.riskScore >= :minimumRiskScore
+            GROUP BY a.username
+            HAVING COUNT(a.id) >= :minimumEventCount
+            ORDER BY a.username
+            """;
+
 }
